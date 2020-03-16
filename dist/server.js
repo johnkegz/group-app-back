@@ -42,11 +42,16 @@ app.get("/", (req, res) => {
 });
 // whenever a user connects on port 3000 via
 // a websocket, log that a user has connected
+const groupMessages = [];
+const sockets = [];
 io.on("connection", function (socket) {
+    sockets.push(socket);
+    console.log("sockects -->", sockets[0].id);
     console.log("a user connected");
+    socket.emit("message", groupMessages);
     socket.on("message", function (message) {
-        console.log(message);
-        socket.emit("message", message);
+        groupMessages.push({ message: message });
+        sockets.forEach(s => s.emit('message', groupMessages));
     });
 });
 const server = http.listen(3000, function () {

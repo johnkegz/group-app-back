@@ -25,7 +25,6 @@
 //     console.log("channel 2", obj)
 // })
 
-
 import express from "express";
 import * as socketio from "socket.io";
 import * as path from "path";
@@ -44,13 +43,18 @@ app.get("/", (req: any, res: any) => {
 
 // whenever a user connects on port 3000 via
 // a websocket, log that a user has connected
+
+const groupMessages: any = [];
+const sockets: Array<any> = []
 io.on("connection", function(socket: any) {
+  sockets.push(socket)
+  console.log("sockects -->",sockets[0].id)
   console.log("a user connected");
+  socket.emit("message", groupMessages);
   socket.on("message", function(message: any) {
-    console.log(message);
-    socket.emit("message", message);
+    groupMessages.push({ message: message });
+    sockets.forEach(s => s.emit('message', groupMessages))
   });
-  
 });
 
 const server = http.listen(3000, function() {
