@@ -24,23 +24,38 @@
 // webSocket.on("channel2", (obj: any)=>{
 //     console.log("channel 2", obj)
 // })
-
+require('dotenv').config();
 import express from "express";
 import * as socketio from "socket.io";
 import * as path from "path";
+import { createConnection } from 'typeorm';
+import config from './src/ormconfig';
+import ChatMessage from './src/Controllers/chatMessage';
 
 const app = express();
-app.set("port", process.env.PORT || 8080);
+app.set("port", process.env.PORT || 3001);
 
 let http = require("http").Server(app);
 // set up socket.io and bind it to our
 // http server.
 let io = require("socket.io")(http);
 
+//connect to data
+(async () => {
+  try {
+    await createConnection(config);
+    console.log('connected to the database');
+  } catch (error) {
+    console.log('Error while connecting to the database', error);
+    return error;
+  }
+})();
+
+
 app.get("/", (req: any, res: any) => {
   res.sendFile(path.resolve("./client/index.html"));
 });
-
+const chatMessage = new ChatMessage()
 const groupMessages: Array<any> = [];
 const sockets: Array<any> = []
 io.on("connection", function(socket: any) {
@@ -49,10 +64,11 @@ io.on("connection", function(socket: any) {
   socket.emit("message", groupMessages);
   socket.on("message", function(message: any) {
     groupMessages.push({ message: message });
+    chatMessage.createChat({userId: "1234", message: "23ewretfhgjkk u"})
     sockets.forEach(s => s.emit('message', groupMessages))
   });
 });
 
-const server = http.listen(8080, function() {
-  console.log("listening on *:8080");
+const server = http.listen(3001, function() {
+  console.log("listening on *:3001");
 });
